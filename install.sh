@@ -56,7 +56,6 @@ chmod 0750 "${ENV_DIR}"
 
 if [[ ! -f "${ENV_FILE}" ]]; then
     generated_token="$(openssl rand -hex 4)"
-    umask 077
     echo "TRIGGER_TOKEN=${generated_token}" > "${ENV_FILE}"
     chown root:"${SERVICE_USER}" "${ENV_FILE}"
     chmod 0640 "${ENV_FILE}"

@@ -16,9 +16,33 @@ LISTEN_HOST = "0.0.0.0"
 LISTEN_PORT = 65432
 
 
+_config_cache = {"signature": None, "data": None}
+
+
 def load_config():
-    with CONFIG_PATH.open("r", encoding="utf-8") as config_file:
-        return json.load(config_file)
+    try:
+        stat_result = CONFIG_PATH.stat()
+        signature = (stat_result.st_mtime_ns, stat_result.st_size)
+    except OSError:
+        if _config_cache["data"] is not None:
+            return _config_cache["data"]
+        raise
+
+    if signature == _config_cache["signature"]:
+        return _config_cache["data"]
+
+    try:
+        with CONFIG_PATH.open("r", encoding="utf-8") as config_file:
+            data = json.load(config_file)
+    except (OSError, ValueError) as reload_error:
+        if _config_cache["data"] is not None:
+            sys.stderr.write(f"config reload failed, keeping previous: {reload_error}\n")
+            return _config_cache["data"]
+        raise
+
+    _config_cache["signature"] = signature
+    _config_cache["data"] = data
+    return data
 
 
 def expected_token():
@@ -80,6 +104,14 @@ class TriggerHandler(BaseHTTPRequestHandler):
 
     def log_message(self, format, *args):
         sys.stderr.write(f"[{self.address_string()}] {format % args}\n")
+
+    def log_request(self, code='-', size='-'):
+        try:
+            method, raw_path, _ = self.requestline.split(" ", 2)
+        except ValueError:
+            method, raw_path = "?", self.requestline
+        path_without_query = raw_path.split("?", 1)[0]
+        self.log_message('"%s %s" %s %s', method, path_without_query, str(code), str(size))
 
     def _write_json(self, status_code, payload):
         body_bytes = json.dumps(payload).encode("utf-8")
