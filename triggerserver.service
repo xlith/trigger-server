@@ -1,0 +1,36 @@
+[Unit]
+Description=LAN-triggered command runner
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=triggerserver
+Group=triggerserver
+SupplementaryGroups=docker
+WorkingDirectory=/opt/triggerserver
+ExecStart=/usr/bin/python3 /opt/triggerserver/trigger_server.py
+Restart=on-failure
+RestartSec=2
+
+# Token is read from this file; chmod 600 and chown triggerserver:triggerserver.
+EnvironmentFile=/etc/triggerserver/triggerserver.env
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictRealtime=true
+RestrictNamespaces=true
+SystemCallArchitectures=native
+
+# StandardOutput/StandardError go to journald by default — view with `journalctl -u triggerserver`.
+
+[Install]
+WantedBy=multi-user.target

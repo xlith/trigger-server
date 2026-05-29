@@ -1,0 +1,38 @@
+{
+  "_comment": "Copy this file to config.json and edit. Each command has a fixed argv and an ordered map of validated params. The server appends each declared param's value (and its optional flag) to argv in declared order. Regexes are fullmatch — anything that doesn't fully match is rejected with HTTP 400.",
+
+  "commands": {
+
+    "uptime": {
+      "_doc": "No-arg command. Trigger: GET /run/uptime?token=…",
+      "argv": ["uptime"],
+      "params": {}
+    },
+
+    "say": {
+      "_doc": "Multi-param example with one required and one optional flagged param. Trigger: GET /run/say?message=hello&voice=Alex&token=…",
+      "argv": ["say"],
+      "params": {
+        "voice":   { "regex": "^[A-Za-z]{1,30}$",      "required": false, "flag": "-v" },
+        "message": { "regex": "^[\\w .,!?'-]{1,200}$", "required": true }
+      }
+    },
+
+    "open-url": {
+      "_doc": "Positional argument (no flag). Trigger: GET /run/open-url?url=https://example.com&token=…",
+      "argv": ["xdg-open"],
+      "params": {
+        "url": { "regex": "^https?://[\\w./?=&%#:-]{1,500}$", "required": true }
+      }
+    },
+
+    "restart-container": {
+      "_doc": "Restart a docker container by name, restricted to a known set via regex. Trigger: GET /run/restart-container?name=crowdsec&token=…",
+      "argv": ["docker", "restart"],
+      "params": {
+        "name": { "regex": "^(crowdsec|traefik|pangolin)$", "required": true }
+      }
+    }
+
+  }
+}
