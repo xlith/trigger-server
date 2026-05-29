@@ -1,4 +1,4 @@
-∫∫∫# trigger-server
+# trigger-server
 
 A tiny HTTP server that runs pre-configured shell commands on the host when triggered from another device on the same network. Built for one specific job — adding IPs to a CrowdSec allowlist remotely — but the command map is configurable.
 
